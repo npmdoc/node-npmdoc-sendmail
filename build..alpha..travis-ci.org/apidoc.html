@@ -1,0 +1,263 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/guileen/node-sendmail"
+
+    >sendmail (v1.1.1)</a>
+</h1>
+<h4>Sendmail without setting up SMTP server</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.sendmail">module sendmail</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.sendmail.sendmail">
+            function <span class="apidocSignatureSpan"></span>sendmail
+            <span class="apidocSignatureSpan">(options)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.sendmail.toString">
+            function <span class="apidocSignatureSpan">sendmail.</span>toString
+            <span class="apidocSignatureSpan">()</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.sendmail.toString">module sendmail.toString</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.sendmail.toString.toString">
+            function <span class="apidocSignatureSpan">sendmail.</span>toString
+            <span class="apidocSignatureSpan">()</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.sendmail" id="apidoc.module.sendmail">module sendmail</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.sendmail.sendmail" id="apidoc.element.sendmail.sendmail">
+        function <span class="apidocSignatureSpan"></span>sendmail
+        <span class="apidocSignatureSpan">(options)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">sendmail = function (options) {
+  options = options || {}
+  var logger = options.logger || (options.silent &#x26;&#x26; {
+    debug: dummy,
+    info: dummy,
+    warn: dummy,
+    error: dummy
+  } || {
+    debug: console.log,
+    info: console.info,
+    warn: console.warn,
+    error: console.error
+  })
+  var dkimPrivateKey = (options.dkim || {}).privateKey
+  var dkimKeySelector = (options.dkim || {}).keySelector || &#x27;dkim&#x27;
+  var devPort = options.devPort || -1
+
+<span class="apidocCodeCommentSpan">  /*
+   *   邮件服务返回代码含义 Mail service return code Meaning
+   *   500   格式错误，命令不可识别（此错误也包括命令行过长）format error, command unrecognized (This error also includes command line too long)
+   *   501   参数格式错误 parameter format error
+   *   502   命令不可实现 command can not be achieved
+   *   503   错误的命令序列 Bad sequence of commands
+   *   504   命令参数不可实现 command parameter can not be achieved
+   *   211   系统状态或系统帮助响应 System status, or system help response
+   *   214   帮助信息 help
+   *   220   服务就绪 Services Ready
+   *   221   服务关闭传输信道 Service closing transmission channel
+   *   421   服务未就绪，关闭传输信道（当必须关闭时，此应答可以作为对任何命令的响应）service is not ready to close the transmission channel (when it is necessary to
+ close, this response may be in response to any command)
+   *   250   要求的邮件操作完成 requested mail action completed
+   *   251   用户非本地，将转发向 non-local users will be forwarded to
+   *   450   要求的邮件操作未完成，邮箱不可用（例如，邮箱忙）Mail the required operation 450 unfinished, mailbox unavailable (for example, mailbox busy)
+   *   550   要求的邮件操作未完成，邮箱不可用（例如，邮箱未找到，或不可访问）Mail action not completed the required 550 mailbox unavailable (eg, mailbox not found
+, no access)
+   *   451   放弃要求的操作；处理过程中出错 waiver operation; processing error
+   *   551   用户非本地，请尝试 non-local user, please try
+   *   452   系统存储不足，要求的操作未执行 Less than 452 storage system, requiring action not taken
+   *   552   过量的存储分配，要求的操作未执行 excess storage allocation requires action not taken
+   *   553   邮箱名不可用，要求的操作未执行（例如邮箱格式错误） mailbox name is not available, that the requested operation is not performed (for example
+, mailbox format error)
+   *   354   开始邮件输入，以.结束 Start Mail input to. End
+   *   554   操作失败  The operation failed
+   *   535   用户验证失败 User authentication failed
+   *   235   用户验证成功 user authentication is successful
+   *   334   等待用户输入验证信息 waits for the user to enter authentication information
+   */
+</span>
+  function getHost (email) {
+    var m = /[^@]+@([\w\d\-\.]+)/.exec(email)
+    return m &#x26;&#x26; m[1]
+  }
+
+  function groupRecipients (recipients) {
+    var groups = {}
+    var host
+    var i = 0
+    for (; i &#x3c; recipients.length; i++) {
+      host = getHost(recipients[i]);
+      (groups[host] || (groups[host] = [])).push(recipients[i])
+    }
+    return groups
+  }
+
+  /**
+   * connect to domain by Mx record
+   */
+  function connectMx (domain, callback) {
+    if (devPort === -1) { // not in development mode -&#x3e; search the MX
+      dns.resolveMx(domain, function (err, data) {
+        if (err) {
+          return callback(err)
+        }
+
+        data.sort(function (a, b) { return a.priority &#x3c; b.priority })
+        logger.debug(&#x27;mx resolved: &#x27;, data)
+
+        if (!data || data.length === 0) {
+          return callback(new Error(&#x27;can not resolve Mx of &#x3c;&#x27; + domain + &#x27;&#x3e;&#x27;))
+        }
+
+        function tryConnect (i) {
+          if (i &#x3e;= data.length) return callback(new Error(&#x27;can not connect to any SMTP server&#x27;))
+
+          var sock = tcp.createConnection(25, data[i].exchange)
+
+          sock.on(&#x27;error&#x27;, function (err) {
+            logger.error(&#x27;Error on connectMx for: &#x27;, data[i], err)
+            tryConnect(++i)
+          })
+
+          sock.on(&#x27;connect&#x27;, function () {
+            logger.debug(&#x27;MX connection created: &#x27;, data[i].exchange)
+            sock.removeAllListeners(&#x27;error&#x27;)
+            callback(null, sock)
+          })
+        };
+
+        tryConnect(0)
+      })
+    } else { // development mode -&#x3e; connect to the specified devPort on localhost
+      var sock = tcp.createConnection(devPort)
+
+      sock.on(&#x27;error&#x27;, function (err) {
+        callback(new Error(&#x27;Error on connectMx (development) for &#x22;localhost:&#x27; + devPort + &#x27;&#x22;: &#x27; + err))
+      })
+
+      sock.on(&#x27;connect&#x27;, function () {
+        logger ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.sendmail.toString" id="apidoc.element.sendmail.toString">
+        function <span class="apidocSignatureSpan">sendmail.</span>toString
+        <span class="apidocSignatureSpan">()</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">toString = function () {
+    return text;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.sendmail.toString" id="apidoc.module.sendmail.toString">module sendmail.toString</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.sendmail.toString.toString" id="apidoc.element.sendmail.toString.toString">
+        function <span class="apidocSignatureSpan">sendmail.</span>toString
+        <span class="apidocSignatureSpan">()</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function toString() { [native code] }</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
